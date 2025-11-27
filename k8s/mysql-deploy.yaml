@@ -10,17 +10,6 @@ stringData:
   mysql-user: "aaharexpress"
   mysql-database: "aahar_express"
 ---
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mysql-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -71,8 +60,9 @@ spec:
             - --collation-server=utf8mb4_unicode_ci
       volumes:
         - name: mysql-storage
-          persistentVolumeClaim:
-            claimName: mysql-pvc
+          hostPath:
+            path: /opt/mysql-data
+            type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: Service
