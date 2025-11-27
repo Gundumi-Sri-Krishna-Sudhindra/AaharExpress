@@ -49,7 +49,14 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            cd ~/app || cd ~
+            cd ~
+            if [ -d "AaharExpress" ]; then
+              cd AaharExpress
+              git pull
+            else
+              git clone https://github.com/Gundumi-Sri-Krishna-Sudhindra/AaharExpress.git
+              cd AaharExpress
+            fi
             ansible-playbook -i ansible/inventory.ini ansible/playbooks/deploy.yml
 
 
