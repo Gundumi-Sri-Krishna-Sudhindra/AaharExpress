@@ -75,11 +75,9 @@ jobs:
             chmod 600 "$KUBECONFIG"
             echo "Using kubeconfig: $KUBECONFIG"
             # Check if Kubernetes services are running
-            echo "Checking Kubernetes services..."
+            echo "=== Checking Kubernetes services ==="
             sudo systemctl status kubelet --no-pager -l | head -20 || echo "kubelet status check failed"
-            # Check kubelet logs for errors
-            echo "Recent kubelet logs:"
-            sudo journalctl -u kubelet --no-pager -n 20 || echo "Could not get kubelet logs"
+            
             # Ensure kubelet is running and restart if needed
             if ! sudo systemctl is-active --quiet kubelet; then
               echo "kubelet is not active, starting..."
@@ -87,34 +85,136 @@ jobs:
               sudo systemctl enable kubelet
               sleep 5
             fi
-            # Check if control plane pods are running
-            echo "Checking for control plane pods..."
-            sudo crictl pods --namespace kube-system || echo "crictl not available or no pods"
-            # Wait for API server to be ready with more diagnostics
-            echo "Waiting for Kubernetes API server to be ready..."
-            for i in {1..60}; do
+            
+            # Check if kubeadm init completed (check for static pod manifests)
+            echo "=== Checking if kubeadm init completed ==="
+            if [ ! -d /etc/kubernetes/manifests ]; then
+              echo "ERROR: /etc/kubernetes/manifests directory not found. kubeadm init may not have completed."
+              echo "Checking if kubeadm init is needed..."
+              if [ ! -f /etc/kubernetes/admin.conf ]; then
+                echo "kubeadm init has not been run. This needs to be done manually or via Ansible playbook."
+                exit 1
+              fi
+            else
+              echo "Static pod manifests directory exists. Checking for control plane manifests..."
+              ls -la /etc/kubernetes/manifests/ || echo "Could not list manifests"
+            fi
+            
+            # Check for static pod manifests
+            echo "=== Checking control plane static pod manifests ==="
+            for manifest in kube-apiserver.yaml etcd.yaml kube-controller-manager.yaml kube-scheduler.yaml; do
+              if [ -f "/etc/kubernetes/manifests/$manifest" ]; then
+                echo "✓ Found $manifest"
+              else
+                echo "✗ Missing $manifest"
+              fi
+            done
+            
+            # Check kubelet logs for errors
+            echo "=== Recent kubelet logs ==="
+            sudo journalctl -u kubelet --no-pager -n 30 || echo "Could not get kubelet logs"
+            
+            # Check control plane pods using crictl
+            echo "=== Checking control plane pods (crictl) ==="
+            if command -v crictl &> /dev/null; then
+              echo "Control plane pods:"
+              sudo crictl pods --namespace kube-system 2>/dev/null || echo "Could not list pods with crictl"
+              echo ""
+              echo "All pods in kube-system:"
+              sudo crictl pods --all-namespaces 2>/dev/null | grep kube-system || echo "No pods found"
+            else
+              echo "crictl not available, checking static pods via systemd"
+            fi
+            
+            # Check if swap is disabled (required for Kubernetes)
+            echo "=== Checking system prerequisites ==="
+            if swapon --show | grep -q .; then
+              echo "WARNING: Swap is enabled. Kubernetes requires swap to be disabled."
+              echo "Run: sudo swapoff -a"
+            else
+              echo "✓ Swap is disabled"
+            fi
+            
+            # Check if required kernel modules are loaded
+            if lsmod | grep -q br_netfilter; then
+              echo "✓ br_netfilter module is loaded"
+            else
+              echo "WARNING: br_netfilter module not loaded"
+            fi
+            
+            # Wait for API server to be ready with comprehensive diagnostics
+            echo "=== Waiting for Kubernetes API server to be ready ==="
+            API_READY=false
+            for i in {1..90}; do
+              # Try to connect to API server
               if kubectl --kubeconfig="$KUBECONFIG" get nodes &>/dev/null; then
-                echo "Kubernetes API server is ready!"
+                echo "✓ Kubernetes API server is ready!"
+                API_READY=true
                 break
               fi
+              
+              # Every 10 attempts, show diagnostics
               if [ $((i % 10)) -eq 0 ]; then
-                echo "Still waiting... (attempt $i/60)"
-                echo "Checking kubelet status:"
+                echo "Still waiting... (attempt $i/90)"
+                echo "--- Diagnostics ---"
+                echo "Kubelet status:"
                 sudo systemctl status kubelet --no-pager -l | head -5 || true
+                echo ""
+                
+                # Check if API server pod exists and its status
+                if command -v crictl &> /dev/null; then
+                  echo "API server pod status:"
+                  sudo crictl pods --namespace kube-system 2>/dev/null | grep kube-apiserver || echo "API server pod not found"
+                  echo ""
+                  echo "Recent API server logs (last 5 lines):"
+                  API_POD=$(sudo crictl pods --namespace kube-system 2>/dev/null | grep kube-apiserver | awk '{print $1}' | head -1)
+                  if [ -n "$API_POD" ]; then
+                    sudo crictl logs --tail 5 "$API_POD" 2>/dev/null || echo "Could not get API server logs"
+                  fi
+                fi
+                echo ""
               fi
-              # If we've tried 20 times (40 seconds) and still no connection, restart kubelet
-              if [ $i -eq 20 ]; then
-                echo "API server still not accessible after 40 seconds, restarting kubelet..."
+              
+              # If we've tried 30 times (60 seconds), restart kubelet
+              if [ $i -eq 30 ]; then
+                echo "API server still not accessible after 60 seconds, restarting kubelet..."
                 sudo systemctl restart kubelet
-                sleep 10
+                sleep 15
               fi
+              
+              # If we've tried 60 times (120 seconds), check for deeper issues
+              if [ $i -eq 60 ]; then
+                echo "API server still not accessible after 2 minutes. Running deeper diagnostics..."
+                echo "--- Deep Diagnostics ---"
+                echo "Checking static pod manifests:"
+                sudo cat /etc/kubernetes/manifests/kube-apiserver.yaml 2>/dev/null | head -20 || echo "Could not read API server manifest"
+                echo ""
+                echo "Checking kubelet configuration:"
+                sudo cat /var/lib/kubelet/config.yaml 2>/dev/null | head -20 || echo "Could not read kubelet config"
+                echo ""
+                echo "Recent kubelet errors:"
+                sudo journalctl -u kubelet --no-pager -n 50 | grep -i error || echo "No obvious errors in recent logs"
+              fi
+              
               sleep 2
             done
-            # Final check
+            
+            # Final check with comprehensive error reporting
             if ! kubectl --kubeconfig="$KUBECONFIG" get nodes &>/dev/null; then
-              echo "ERROR: Kubernetes API server is still not ready after 2 minutes"
-              echo "This may require manual intervention on the server"
-              echo "Try running on the server: sudo systemctl restart kubelet"
+              echo "=== ERROR: Kubernetes API server is still not ready after 3 minutes ==="
+              echo ""
+              echo "Troubleshooting steps:"
+              echo "1. Check kubelet logs: sudo journalctl -u kubelet -n 100"
+              echo "2. Check if static pods are running: sudo crictl pods --all-namespaces"
+              echo "3. Verify kubeadm init completed: ls -la /etc/kubernetes/manifests/"
+              echo "4. Check API server logs: sudo crictl logs <api-server-pod-id>"
+              echo "5. Restart kubelet: sudo systemctl restart kubelet"
+              echo "6. If cluster is broken, reset and reinitialize:"
+              echo "   sudo kubeadm reset -f"
+              echo "   sudo kubeadm init --pod-network-cidr=192.168.0.0/16"
+              echo ""
+              echo "Current system state:"
+              sudo systemctl status kubelet --no-pager -l | tail -10 || true
               exit 1
             fi
             kubectl --kubeconfig="$KUBECONFIG" get nodes

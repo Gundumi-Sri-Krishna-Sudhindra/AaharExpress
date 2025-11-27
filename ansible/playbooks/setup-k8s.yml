@@ -99,6 +99,14 @@
       command: kubeadm init --pod-network-cidr=192.168.0.0/16
       args:
         creates: /etc/kubernetes/admin.conf
+      register: kubeadm_init
+      changed_when: "'Your Kubernetes control-plane has initialized' in kubeadm_init.stdout"
+
+    - name: Wait for kubelet to start
+      wait_for:
+        path: /etc/kubernetes/manifests
+        state: directory
+      timeout: 60
 
     - name: Create .kube directory for regular user
       file:
@@ -117,9 +125,62 @@
         group: "{{ ansible_user_gid | default(ansible_user_id) }}"
         mode: '0600'
 
+    - name: Wait for Kubernetes API server to be ready
+      shell: |
+        export KUBECONFIG=/etc/kubernetes/admin.conf
+        for i in {1..60}; do
+          if kubectl --kubeconfig="$KUBECONFIG" get nodes &>/dev/null; then
+            echo "API server is ready"
+            exit 0
+          fi
+          sleep 2
+        done
+        echo "API server did not become ready in time"
+        exit 1
+      register: api_ready
+      changed_when: false
+      failed_when: "'API server is ready' not in api_ready.stdout"
+
+    - name: Wait for control plane pods to be ready
+      shell: |
+        export KUBECONFIG=/etc/kubernetes/admin.conf
+        for i in {1..30}; do
+          READY=$(kubectl --kubeconfig="$KUBECONFIG" get pods -n kube-system -l tier=control-plane --no-headers 2>/dev/null | grep -c "Running" || echo "0")
+          TOTAL=$(kubectl --kubeconfig="$KUBECONFIG" get pods -n kube-system -l tier=control-plane --no-headers 2>/dev/null | wc -l || echo "0")
+          if [ "$READY" -eq "$TOTAL" ] && [ "$TOTAL" -gt 0 ]; then
+            echo "All control plane pods are ready"
+            exit 0
+          fi
+          sleep 2
+        done
+        echo "Control plane pods did not become ready in time"
+        exit 1
+      register: control_plane_ready
+      changed_when: false
+      failed_when: "'All control plane pods are ready' not in control_plane_ready.stdout"
+
     - name: Install Calico network plugin
       command: >
         kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/calico.yaml
+      environment:
+        KUBECONFIG: "/home/{{ ansible_user_id }}/.kube/config"
+
+    - name: Wait for Calico pods to be ready
+      shell: |
+        export KUBECONFIG="/home/{{ ansible_user_id }}/.kube/config"
+        for i in {1..60}; do
+          READY=$(kubectl --kubeconfig="$KUBECONFIG" get pods -n kube-system -l k8s-app=calico-node --no-headers 2>/dev/null | grep -c "Running" || echo "0")
+          if [ "$READY" -gt 0 ]; then
+            echo "Calico is ready"
+            exit 0
+          fi
+          sleep 2
+        done
+        echo "Calico did not become ready in time"
+        exit 1
+      register: calico_ready
+      changed_when: false
+      failed_when: "'Calico is ready' not in calico_ready.stdout"
       environment:
         KUBECONFIG: "/home/{{ ansible_user_id }}/.kube/config"
 
