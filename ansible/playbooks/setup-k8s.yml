@@ -1,0 +1,95 @@
+---
+- name: Setup Kubernetes master node
+  hosts: k8s-master
+  become: yes
+
+  vars:
+    kube_packages:
+      - kubelet
+      - kubeadm
+      - kubectl
+
+  tasks:
+    - name: Install required apt packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+        update_cache: yes
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Enable and start Docker
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Add Kubernetes apt key
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
+
+    - name: Add Kubernetes apt repository
+      apt_repository:
+        repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+        state: present
+
+    - name: Install kubeadm, kubelet, kubectl
+      apt:
+        name: "{{ kube_packages }}"
+        state: present
+        update_cache: yes
+
+    - name: Hold kube packages at current version
+      apt:
+        name: "{{ kube_packages }}"
+        state: present
+        mark: hold
+
+    - name: Disable swap (required by Kubernetes)
+      command: swapoff -a
+      when: ansible_swaptotal_mb | default(0) > 0
+
+    - name: Comment out any swap entries in fstab
+      replace:
+        path: /etc/fstab
+        regexp: '^(\S+\s+\S+\s+swap\s+.*)$'
+        replace: '# \1'
+
+    - name: Initialize Kubernetes cluster
+      command: kubeadm init --pod-network-cidr=192.168.0.0/16
+      args:
+        creates: /etc/kubernetes/admin.conf
+
+    - name: Create .kube directory for regular user
+      file:
+        path: "/home/{{ ansible_user_id }}/.kube"
+        state: directory
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_gid | default(ansible_user_id) }}"
+        mode: '0755'
+
+    - name: Copy admin.conf to user's kube config
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: "/home/{{ ansible_user_id }}/.kube/config"
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_gid | default(ansible_user_id) }}"
+        mode: '0600'
+
+    - name: Install Calico network plugin
+      command: >
+        kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/calico.yaml
+      environment:
+        KUBECONFIG: "/home/{{ ansible_user_id }}/.kube/config"
+
+

@@ -1,0 +1,30 @@
+---
+- name: Deploy Kubernetes manifests
+  hosts: k8s-master
+  become: yes
+
+  vars:
+    k8s_manifests_src: "files/k8s-manifests"
+    k8s_manifests_dest: "/opt/k8s"
+
+  tasks:
+    - name: Ensure destination directory exists
+      file:
+        path: "{{ k8s_manifests_dest }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy Kubernetes manifests to target
+      copy:
+        src: "{{ item }}"
+        dest: "{{ k8s_manifests_dest }}/"
+        mode: '0644'
+      with_fileglob:
+        - "{{ k8s_manifests_src }}/*.yaml"
+
+    - name: Apply Kubernetes manifests
+      command: kubectl apply -f "{{ k8s_manifests_dest }}/"
+      environment:
+        KUBECONFIG: "/home/{{ ansible_user_id }}/.kube/config"
+
+
