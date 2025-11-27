@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: <username>/app-frontend:latest
+          image: srikrishna17/app-frontend:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 80
