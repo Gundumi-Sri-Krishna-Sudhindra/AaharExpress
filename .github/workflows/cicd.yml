@@ -38,6 +38,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./AaharExpress_B
+          file: ./AaharExpress_B/DockerFile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/app-backend:latest
 
