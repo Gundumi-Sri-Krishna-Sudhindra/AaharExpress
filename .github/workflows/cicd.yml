@@ -57,10 +57,27 @@ jobs:
               git clone https://github.com/Gundumi-Sri-Krishna-Sudhindra/AaharExpress.git
               cd AaharExpress
             fi
-            export KUBECONFIG=/home/ubuntu/.kube/config
+            # Check for kubeconfig in common locations
+            if [ -f /home/ubuntu/.kube/config ]; then
+              export KUBECONFIG=/home/ubuntu/.kube/config
+            elif [ -f /etc/kubernetes/admin.conf ]; then
+              # Copy admin.conf to user's kube directory if it doesn't exist
+              mkdir -p /home/ubuntu/.kube
+              sudo cp /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
+              sudo chown ubuntu:ubuntu /home/ubuntu/.kube/config
+              export KUBECONFIG=/home/ubuntu/.kube/config
+            else
+              echo "Error: kubeconfig file not found"
+              ls -la /home/ubuntu/.kube/ 2>/dev/null || echo "~/.kube directory doesn't exist"
+              ls -la /etc/kubernetes/ 2>/dev/null || echo "/etc/kubernetes doesn't exist"
+              exit 1
+            fi
+            chmod 600 "$KUBECONFIG"
+            echo "Using kubeconfig: $KUBECONFIG"
+            kubectl --kubeconfig="$KUBECONFIG" get nodes
             sudo mkdir -p /opt/k8s
             sudo cp ansible/files/k8s-manifests/*.yaml /opt/k8s/
             sudo chown -R ubuntu:ubuntu /opt/k8s
-            kubectl apply -f /opt/k8s/
+            kubectl --kubeconfig="$KUBECONFIG" apply -f /opt/k8s/
 
 
