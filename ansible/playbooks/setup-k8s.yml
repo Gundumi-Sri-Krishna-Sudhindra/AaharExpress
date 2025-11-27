@@ -33,15 +33,23 @@
         enabled: yes
         state: started
 
-    - name: Add Kubernetes apt key
-      apt_key:
-        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-        state: present
+    - name: Create keyrings directory
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Add Kubernetes signing key
+      shell: |
+        curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      args:
+        creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
     - name: Add Kubernetes apt repository
       apt_repository:
-        repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+        repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /"
         state: present
+        filename: kubernetes
 
     - name: Install kubeadm, kubelet, kubectl
       apt:
@@ -50,10 +58,11 @@
         update_cache: yes
 
     - name: Hold kube packages at current version
-      apt:
-        name: "{{ kube_packages }}"
-        state: present
-        mark: hold
+      shell: |
+        for pkg in {{ kube_packages | join(' ') }}; do
+          apt-mark hold $pkg || true
+        done
+      changed_when: false
 
     - name: Disable swap (required by Kubernetes)
       command: swapoff -a
@@ -64,6 +73,27 @@
         path: /etc/fstab
         regexp: '^(\S+\s+\S+\s+swap\s+.*)$'
         replace: '# \1'
+
+    - name: Load br_netfilter kernel module
+      modprobe:
+        name: br_netfilter
+        state: present
+
+    - name: Enable bridge netfilter
+      sysctl:
+        name: net.bridge.bridge-nf-call-iptables
+        value: '1'
+        state: present
+        sysctl_set: yes
+        reload: yes
+
+    - name: Enable bridge netfilter for IPv6
+      sysctl:
+        name: net.bridge.bridge-nf-call-ip6tables
+        value: '1'
+        state: present
+        sysctl_set: yes
+        reload: yes
 
     - name: Initialize Kubernetes cluster
       command: kubeadm init --pod-network-cidr=192.168.0.0/16
@@ -82,6 +112,7 @@
       copy:
         src: /etc/kubernetes/admin.conf
         dest: "/home/{{ ansible_user_id }}/.kube/config"
+        remote_src: yes
         owner: "{{ ansible_user_id }}"
         group: "{{ ansible_user_gid | default(ansible_user_id) }}"
         mode: '0600'
