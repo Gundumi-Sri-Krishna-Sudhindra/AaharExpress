@@ -74,6 +74,23 @@ jobs:
             fi
             chmod 600 "$KUBECONFIG"
             echo "Using kubeconfig: $KUBECONFIG"
+            # Check if Kubernetes services are running
+            echo "Checking Kubernetes services..."
+            sudo systemctl status kubelet --no-pager || echo "kubelet not running"
+            sudo systemctl status containerd --no-pager || echo "containerd not running"
+            # Ensure kubelet is running
+            sudo systemctl start kubelet || true
+            sudo systemctl enable kubelet || true
+            # Wait a bit for API server to be ready
+            echo "Waiting for Kubernetes API server to be ready..."
+            for i in {1..30}; do
+              if kubectl --kubeconfig="$KUBECONFIG" get nodes &>/dev/null; then
+                echo "Kubernetes API server is ready!"
+                break
+              fi
+              echo "Attempt $i/30: API server not ready yet, waiting..."
+              sleep 2
+            done
             kubectl --kubeconfig="$KUBECONFIG" get nodes
             sudo mkdir -p /opt/k8s
             sudo cp ansible/files/k8s-manifests/*.yaml /opt/k8s/
