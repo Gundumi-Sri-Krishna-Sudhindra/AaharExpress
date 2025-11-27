@@ -57,9 +57,10 @@ jobs:
               git clone https://github.com/Gundumi-Sri-Krishna-Sudhindra/AaharExpress.git
               cd AaharExpress
             fi
-            export KUBECONFIG=~/.kube/config
-            mkdir -p /opt/k8s
-            cp ansible/files/k8s-manifests/*.yaml /opt/k8s/
+            export KUBECONFIG=/home/ubuntu/.kube/config
+            sudo mkdir -p /opt/k8s
+            sudo cp ansible/files/k8s-manifests/*.yaml /opt/k8s/
+            sudo chown -R ubuntu:ubuntu /opt/k8s
             kubectl apply -f /opt/k8s/
 
 
