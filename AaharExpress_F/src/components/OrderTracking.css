@@ -1,0 +1,463 @@
+/* Order Tracking Styles */
+.order-tracking-page {
+  padding: 40px 0 60px;
+}
+
+.order-tracking-card {
+  background-color: var(--bg-color);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.order-tracking-header {
+  padding: 25px 30px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tracking-title {
+  font-size: 28px;
+  margin-bottom: 15px;
+  color: var(--primary-color);
+}
+
+.order-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.order-number, .order-time {
+  color: var(--text-color);
+}
+
+.order-number span, .order-time span {
+  font-weight: 500;
+}
+
+.delivery-info {
+  padding: 30px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.delivery-status {
+  margin-bottom: 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.status-text {
+  font-size: 22px;
+  color: var(--primary-color);
+}
+
+.eta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  color: var(--text-color);
+}
+
+.progress-container {
+  margin-bottom: 30px;
+}
+
+.progress-bar {
+  height: 8px;
+  background-color: var(--light-bg);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 15px;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: var(--primary-color);
+  transition: width 0.5s ease;
+}
+
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  width: 70px;
+}
+
+.step-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--light-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  color: var(--text-color);
+  border: 2px solid var(--border-color);
+  transition: var(--transition);
+}
+
+.step.active .step-icon {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.step span {
+  font-size: 14px;
+  color: var(--text-color);
+  text-align: center;
+}
+
+.delivery-map {
+  margin-top: 30px;
+}
+
+.map-placeholder {
+  background-color: var(--light-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.map-placeholder h3 {
+  padding: 15px 20px;
+  background-color: var(--bg-color);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 18px;
+  color: var(--text-color);
+}
+
+.map-content {
+  height: 200px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 20px;
+  text-align: center;
+  color: var(--text-color);
+}
+
+.driver-marker, .destination-marker {
+  position: absolute;
+  font-size: 24px;
+}
+
+.driver-marker {
+  color: var(--primary-color);
+  top: 70px;
+  left: 30%;
+  animation: bounce 1s infinite alternate;
+}
+
+.destination-marker {
+  color: var(--error-color);
+  top: 90px;
+  right: 30%;
+}
+
+@keyframes bounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-8px); }
+}
+
+.map-coords {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 14px;
+}
+
+.order-details {
+  padding: 30px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.section-heading {
+  font-size: 20px;
+  margin-bottom: 15px;
+  color: var(--text-color);
+}
+
+.order-items-list {
+  margin-bottom: 20px;
+}
+
+.order-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.order-item:last-child {
+  border-bottom: none;
+}
+
+.item-details {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.item-quantity {
+  font-weight: 500;
+  color: var(--primary-color);
+}
+
+.item-name {
+  color: var(--text-color);
+}
+
+.item-price {
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.order-total {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 0;
+  border-top: 1px solid var(--border-color);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 25px;
+}
+
+.delivery-address p {
+  margin-bottom: 5px;
+  color: var(--text-color);
+}
+
+.tracking-actions {
+  padding: 20px 30px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.no-order-message {
+  text-align: center;
+  padding: 60px 0;
+}
+
+.no-order-message h2 {
+  margin-bottom: 15px;
+  color: var(--text-color);
+}
+
+.no-order-message p {
+  margin-bottom: 20px;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+  .delivery-status {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .progress-steps {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  .tracking-actions {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .tracking-actions button {
+    width: 100%;
+  }
+}
+/* Add these styles to your OrderTracking.css file */
+
+/* Rating Popup Overlay */
+.rating-popup-overlay {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0, 0, 0, 0.7);
+display: flex;
+justify-content: center;
+align-items: center;
+z-index: 1000;
+}
+
+/* Rating Popup Container */
+.rating-popup {
+background-color: #fff;
+border-radius: 8px;
+padding: 30px;
+width: 90%;
+max-width: 500px;
+position: relative;
+box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+animation: popIn 0.3s ease-out forwards;
+}
+
+@keyframes popIn {
+0% {
+  transform: scale(0.8);
+  opacity: 0;
+}
+100% {
+  transform: scale(1);
+  opacity: 1;
+}
+}
+
+/* Close Button */
+.close-btn {
+position: absolute;
+top: 15px;
+right: 20px;
+font-size: 24px;
+background: none;
+border: none;
+cursor: pointer;
+color: #777;
+transition: color 0.2s;
+}
+
+.close-btn:hover {
+color: #333;
+}
+
+/* Rating Popup Title */
+.rating-popup h2 {
+margin-top: 0;
+margin-bottom: 20px;
+color: #333;
+font-size: 1.5rem;
+text-align: center;
+}
+
+/* Star Rating */
+.rating-stars {
+display: flex;
+justify-content: center;
+margin-bottom: 25px;
+}
+
+.star {
+font-size: 2.5rem;
+color: #ddd;
+cursor: pointer;
+margin: 0 5px;
+transition: color 0.2s, transform 0.2s;
+}
+
+.star:hover {
+transform: scale(1.1);
+}
+
+.star.active {
+color: #ffc107;
+}
+
+/* Feedback Form */
+.feedback-form {
+margin-bottom: 25px;
+}
+
+.feedback-form label {
+display: block;
+margin-bottom: 8px;
+font-weight: 500;
+color: #555;
+}
+
+.feedback-form textarea {
+width: 100%;
+padding: 12px;
+border: 1px solid #ddd;
+border-radius: 4px;
+resize: vertical;
+font-family: inherit;
+font-size: 14px;
+}
+
+.feedback-form textarea:focus {
+border-color: #4a90e2;
+outline: none;
+box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+/* Submit Button */
+.submit-rating {
+width: 100%;
+padding: 12px;
+font-weight: 600;
+font-size: 16px;
+border-radius: 4px;
+}
+
+.submit-rating:disabled {
+background-color: #ccc;
+cursor: not-allowed;
+}
+
+/* Success Message */
+.rating-success {
+text-align: center;
+padding: 20px 0;
+}
+
+.success-icon {
+display: inline-flex;
+justify-content: center;
+align-items: center;
+width: 80px;
+height: 80px;
+background-color: #4CAF50;
+color: white;
+border-radius: 50%;
+font-size: 40px;
+margin-bottom: 20px;
+animation: scaleIn 0.5s ease-out;
+}
+
+@keyframes scaleIn {
+0% {
+  transform: scale(0);
+}
+70% {
+  transform: scale(1.1);
+}
+100% {
+  transform: scale(1);
+}
+}
+
+.rating-success h3 {
+color: #333;
+margin-bottom: 10px;
+}
+
+.rating-success p {
+color: #666;
+}

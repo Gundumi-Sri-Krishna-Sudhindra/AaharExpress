@@ -1,0 +1,443 @@
+/* Common styles for all role-based dashboards */
+.role-dashboard {
+  padding: 20px;
+  background-color: #f8f9fa;
+  min-height: 80vh;
+}
+
+.role-dashboard-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border-left-color: #007bff;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.dashboard-header {
+  margin-bottom: 25px;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 15px;
+}
+
+.dashboard-header h1 {
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.dashboard-header p {
+  color: #666;
+  font-size: 1rem;
+}
+
+.dashboard-tabs {
+  display: flex;
+  margin-bottom: 25px;
+  border-bottom: 1px solid #e0e0e0;
+  overflow-x: auto;
+}
+
+.tab-button {
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  white-space: nowrap;
+}
+
+.tab-button:hover {
+  color: #007bff;
+}
+
+.tab-button.active {
+  color: #007bff;
+}
+
+.tab-button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: #007bff;
+}
+
+.dashboard-content {
+  padding: 15px 0;
+}
+
+/* Stats cards */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1rem;
+  color: #666;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.stat-icon {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 2rem;
+  opacity: 0.2;
+}
+
+/* Tables */
+.orders-table, .deliveries-table, .menu-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 30px;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.orders-table th, .deliveries-table th, .menu-table th,
+.orders-table td, .deliveries-table td, .menu-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.orders-table th, .deliveries-table th, .menu-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+.orders-table tr:last-child td, 
+.deliveries-table tr:last-child td,
+.menu-table tr:last-child td {
+  border-bottom: none;
+}
+
+.orders-table tr:hover, 
+.deliveries-table tr:hover,
+.menu-table tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Status badges */
+.status-badge {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  display: inline-block;
+}
+
+.status-badge.pending {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.preparing {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-badge.ready {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-badge.delivered {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-badge.pickup {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-badge.enroute {
+  background-color: #cce5ff;
+  color: #004085;
+}
+
+.status-badge.assigned {
+  background-color: #e2e3e5;
+  color: #383d41;
+}
+
+.status-badge.available {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-badge.unavailable {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* Buttons */
+.view-order-btn, .reorder-btn, .edit-btn, .toggle-btn, .action-button, .map-button, .order-now-btn, .add-item-btn {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.view-order-btn, .map-button {
+  background-color: #e9ecef;
+  color: #495057;
+  margin-right: 5px;
+}
+
+.view-order-btn:hover, .map-button:hover {
+  background-color: #dee2e6;
+}
+
+.reorder-btn, .action-button, .order-now-btn {
+  background-color: #007bff;
+  color: white;
+}
+
+.reorder-btn:hover, .action-button:hover, .order-now-btn:hover {
+  background-color: #0069d9;
+}
+
+.edit-btn {
+  background-color: #6c757d;
+  color: white;
+  margin-right: 5px;
+}
+
+.edit-btn:hover {
+  background-color: #5a6268;
+}
+
+.toggle-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.toggle-btn:hover {
+  background-color: #c82333;
+}
+
+.add-item-btn {
+  background-color: #28a745;
+  color: white;
+}
+
+.add-item-btn:hover {
+  background-color: #218838;
+}
+
+/* Admin Dashboard specific styles */
+.admin-dashboard .admin-actions {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.admin-dashboard .action-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.admin-dashboard .action-button {
+  padding: 12px 15px;
+  text-align: center;
+}
+
+.admin-dashboard .activity-list {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.admin-dashboard .activity-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+}
+
+.admin-dashboard .activity-item:last-child {
+  border-bottom: none;
+}
+
+.admin-dashboard .activity-time {
+  width: 100px;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.admin-dashboard .activity-text {
+  flex: 1;
+}
+
+/* Restaurant Dashboard specific styles */
+.restaurant-dashboard .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* Customer Dashboard specific styles */
+.customer-dashboard .restaurant-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 15px;
+}
+
+.customer-dashboard .restaurant-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.customer-dashboard .restaurant-card:hover {
+  transform: translateY(-5px);
+}
+
+.customer-dashboard .restaurant-card h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.customer-dashboard .restaurant-rating {
+  margin: 10px 0;
+  color: #ffc107;
+}
+
+.customer-dashboard .order-now-btn {
+  width: 100%;
+  padding: 8px;
+  margin-top: 10px;
+}
+
+/* Delivery Agent Dashboard specific styles */
+.delivery-dashboard .delivery-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.delivery-dashboard .delivery-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-left: 5px solid #e9ecef;
+}
+
+.delivery-dashboard .delivery-card.pickup {
+  border-left-color: #17a2b8;
+}
+
+.delivery-dashboard .delivery-card.enroute {
+  border-left-color: #007bff;
+}
+
+.delivery-dashboard .delivery-card.assigned {
+  border-left-color: #6c757d;
+}
+
+.delivery-dashboard .delivery-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.delivery-dashboard .delivery-header h4 {
+  margin: 0;
+}
+
+.delivery-dashboard .delivery-details {
+  margin-bottom: 15px;
+}
+
+.delivery-dashboard .delivery-details p {
+  margin: 5px 0;
+}
+
+.delivery-dashboard .delivery-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .admin-dashboard .action-buttons,
+  .customer-dashboard .restaurant-cards,
+  .delivery-dashboard .delivery-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .orders-table, .deliveries-table, .menu-table {
+    display: block;
+    overflow-x: auto;
+  }
+} 
