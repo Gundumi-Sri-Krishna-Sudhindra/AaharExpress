@@ -76,21 +76,47 @@ jobs:
             echo "Using kubeconfig: $KUBECONFIG"
             # Check if Kubernetes services are running
             echo "Checking Kubernetes services..."
-            sudo systemctl status kubelet --no-pager || echo "kubelet not running"
-            sudo systemctl status containerd --no-pager || echo "containerd not running"
-            # Ensure kubelet is running
-            sudo systemctl start kubelet || true
-            sudo systemctl enable kubelet || true
-            # Wait a bit for API server to be ready
+            sudo systemctl status kubelet --no-pager -l | head -20 || echo "kubelet status check failed"
+            # Check kubelet logs for errors
+            echo "Recent kubelet logs:"
+            sudo journalctl -u kubelet --no-pager -n 20 || echo "Could not get kubelet logs"
+            # Ensure kubelet is running and restart if needed
+            if ! sudo systemctl is-active --quiet kubelet; then
+              echo "kubelet is not active, starting..."
+              sudo systemctl start kubelet
+              sudo systemctl enable kubelet
+              sleep 5
+            fi
+            # Check if control plane pods are running
+            echo "Checking for control plane pods..."
+            sudo crictl pods --namespace kube-system || echo "crictl not available or no pods"
+            # Wait for API server to be ready with more diagnostics
             echo "Waiting for Kubernetes API server to be ready..."
-            for i in {1..30}; do
+            for i in {1..60}; do
               if kubectl --kubeconfig="$KUBECONFIG" get nodes &>/dev/null; then
                 echo "Kubernetes API server is ready!"
                 break
               fi
-              echo "Attempt $i/30: API server not ready yet, waiting..."
+              if [ $((i % 10)) -eq 0 ]; then
+                echo "Still waiting... (attempt $i/60)"
+                echo "Checking kubelet status:"
+                sudo systemctl status kubelet --no-pager -l | head -5 || true
+              fi
+              # If we've tried 20 times (40 seconds) and still no connection, restart kubelet
+              if [ $i -eq 20 ]; then
+                echo "API server still not accessible after 40 seconds, restarting kubelet..."
+                sudo systemctl restart kubelet
+                sleep 10
+              fi
               sleep 2
             done
+            # Final check
+            if ! kubectl --kubeconfig="$KUBECONFIG" get nodes &>/dev/null; then
+              echo "ERROR: Kubernetes API server is still not ready after 2 minutes"
+              echo "This may require manual intervention on the server"
+              echo "Try running on the server: sudo systemctl restart kubelet"
+              exit 1
+            fi
             kubectl --kubeconfig="$KUBECONFIG" get nodes
             sudo mkdir -p /opt/k8s
             sudo cp ansible/files/k8s-manifests/*.yaml /opt/k8s/
